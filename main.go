@@ -76,70 +76,64 @@ func right_row_ia(board[][]string) (int,int) {
 	return -1,-1
 }
 
-/*fmt.Println("aaaaaaaaaaaaaaaaaaaaaaaa = " , position)
+func check_win(board[][]string,piece string) int{
+	// UP DOWN POSITION
 
-func check_left_right(board[]string,piece string) int{
-	win := 0
-	all_win := []int{}
-	for j := 0; j < 7; j++ {
-		idx := 41 - j
-		for i := 0; i < 6 ; i++ {
-			if board[idx] == piece {
-				win = win + 1
-				idx = idx - 7
-			} else if board[idx] != piece {
-				idx = idx - 7
+	win := false
+	for i := 0; i < rows; i++ {
+        for j := 0; j < cols; j++ {
+			if i + 3 < 6 {
+				if board[5-i][j] == piece && board[4-i][j] == piece && board[3-i][j] == piece && board[2-i][j] == piece {
+					win = true
+				}
 			}
-			if i == 5 {		
-				all_win = append(all_win,win)
-				win = 0
-			}
-		}
-	}
-	sort.Ints(all_win)
-	sort.Sort(sort.Reverse(sort.IntSlice(all_win)))
-	fmt.Println(all_win)
-	return(all_win[0])
-}
+        }
+    }
 
-func check_up_down(board[]string,piece string) int{
-	win := 0
-	//up := 0
-	all_win := []int{}
-	for j := 0; j < 6; j++ {
-		idx := 0 + (j * 6)
-		//fmt.Println("idx = " , idx)
-		for i := 0; i < 7 ; i++ {
-			//fmt.Println("IDX = " , idx)
-			if board[idx] == piece {
-				win = win + 1
-				idx = idx + 7
-			} else if board[idx] != piece {
-				idx = idx + 7
-			}
-			if i == 5 {		
-				all_win = append(all_win,win)
-				win = 0
-			}
-		}
-	}
-	sort.Ints(all_win)
-	sort.Sort(sort.Reverse(sort.IntSlice(all_win)))
-	fmt.Println(all_win)
-	return(all_win[0])
-}
+	// RIGHT LEFT POSITION
 
-/*
-func check_win(board[]string,int piece) {
-	left_right := 0
-	up_down := 0
-	left_right_diag_up := 0
-	left_right_diag_down := 0
-
-	//for i := 0; i < 
+	for i := 0; i < rows; i++ {
+        for j := 0; j < cols; j++ {
+			if j + 3 < 7 {
+				if board[i][6-j] == piece && board[i][5-j] == piece && board[i][4-j] == piece && board[i][3-j] == piece {
+					win = true
+				}
+			}
+        }
+    }
 	
+	// DIAG RIGHT POSITION
+
+	for i := 0; i < rows; i++ {
+        for j := 0; j < cols; j++ {
+			if j + 3 < 7 && i + 3 < 6{
+				if board[5-i][j] == piece && board[4-i][j+1] == piece && board[3-i][j+2] == piece && board[2-i][j+3] == piece {
+					win = true
+				}
+			}
+        }
+    }
+
+	// DIAG LEFT POSITION
+
+	for i := 0; i < rows; i++ {
+        for j := 0; j < cols; j++ {
+			if j + 3 < 7 && i + 3 < 7{
+				if board[5-i][6-j] == piece && board[4-i][5-j] == piece && board[3-i][4-j] == piece && board[2-i][3-j] == piece {
+					win = true
+				}
+			}
+        }
+    }
+
+	if win == true && piece == "X"{
+		return 1
+	} else if win == true && piece == "O"{
+		return -1
+	} else {
+		return 0
+	}
 }
-*/
 
 func auto_play(board[][]string,position int,piece string) [][]string {
 
@@ -172,11 +166,8 @@ func drop_piece(board[][]string,position int,piece string,ia bool) [][]string{
 	
 	if ia == true {		
 		x,y = right_row_ia(board)
-		//fmt.Println(x,y)
 		for x < 0 || y < 0 {
 			x,y = right_row_ia(board)
-			fmt.Println(x,y," pos problem")
-			//return(board)
 		}
 		board[x][y] = piece
 		return(board)
@@ -208,10 +199,31 @@ func drop_piece(board[][]string,position int,piece string,ia bool) [][]string{
 		x,y = right_row(board,position)
 		board[x][y] = piece
 	}
-	//fmt.Println("x = " , x , " y = " , y)
+
+	check_all(board)
 	return(board)
 }
 
+
+func check_all(board[][]string) {
+	check_w := 0
+	check_l := 0
+	
+	check_w = check_win(board,"X")
+	check_l = check_win(board,"O")
+		
+	if check_w == 1 {
+		fmt.Println("YOU WIN STEEVEN")
+		os.Exit(0)
+	} else if check_l == -1 {
+		fmt.Println("YOU WIN IA")
+		os.Exit(0)
+	}
+	if check_full(board) == true {
+		fmt.Println("FULLL")
+		os.Exit(0)
+	}
+}
 
 func main_game() {
 	board := make_board()
@@ -227,12 +239,6 @@ func main_game() {
 		position = my_atoi(play.Text())
 		ia_play_1 , ia_play_2 = right_row_ia(board)
 		r1,r2 = right_row(board,position)
-		if check_full(board) == true {
-			fmt.Println("FULLL")
-			os.Exit(0)
-		}
-		//fmt.Println(position,ia_play_1,ia_play_2,r1,r2)
-		//fmt.Println(ia_play_1,ia_play_2,r1,r2)
 		if position != -1 || r1 != -1 || r2 != -1 || ia_play_1 != -1 || ia_play_2 != -1{
 			drop_piece(board,position,"X",false)
 			drop_piece(board,ia_play_1,"O",true)
